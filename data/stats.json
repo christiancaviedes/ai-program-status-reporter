@@ -1,0 +1,20 @@
+{
+  "test": 48,
+  "validation": 48,
+  "train": 384,
+  "test_status": {
+    "yellow": 15,
+    "red": 22,
+    "green": 11
+  },
+  "validation_status": {
+    "yellow": 19,
+    "green": 20,
+    "red": 9
+  },
+  "train_status": {
+    "yellow": 110,
+    "red": 157,
+    "green": 117
+  }
+}
