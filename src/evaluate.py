@@ -91,7 +91,11 @@ def score(pred_text, gold):
     present = [k in obj for k in KEYS]
     r["coverage"] = sum(present) / len(KEYS)
     r["full_schema"] = all(present)
-    r["status_ok"] = str(obj.get("status", "")).lower().strip() == gold["status"]
+    r["pred_status"] = str(obj.get("status", "none")).lower().strip()
+    r["gold_status"] = gold["status"]
+    if r["pred_status"] not in ("green", "yellow", "red"):
+        r["pred_status"] = "other"
+    r["status_ok"] = r["pred_status"] == gold["status"]
     pr = [field_text(x, "risk") for x in as_list(obj.get("risks"))]
     gr = [x["risk"] for x in gold["risks"]]
     m = match(pr, gr)
@@ -125,6 +129,8 @@ def aggregate(rows):
         "risk_owner_acc": S("owner_ok") / S("risk_tp") if S("risk_tp") else 0.0,
         "milestone_f1": prf(S("ms_tp"), S("ms_np"), S("ms_ng"))[2],
         "next_steps_f1": prf(S("ns_tp"), S("ns_np"), S("ns_ng"))[2],
+        "status_confusion": {g: {p: sum(1 for r in rows if r["gold_status"] == g and r["pred_status"] == p)
+                                 for p in ["green", "yellow", "red", "other"]} for g in ["green", "yellow", "red"]},
     }
 
 
@@ -150,6 +156,8 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max_new_tokens", type=int, default=448)
     ap.add_argument("--batch_size", type=int, default=8)
+    ap.add_argument("--rescore", action="store_true",
+                    help="recompute metrics from an existing out_dir/predictions.jsonl without regenerating")
     a = ap.parse_args()
     torch.manual_seed(0)
     torch.set_num_threads(os.cpu_count())
@@ -157,14 +165,23 @@ def main():
     if a.limit:
         rows = rows[: a.limit]
     golds = [json.loads(r["target"]) for r in rows]
+    os.makedirs(a.out_dir, exist_ok=True)
+    results, preds = {}, {}
+    if a.rescore:
+        old = json.load(open(os.path.join(a.out_dir, "metrics.json")))
+        prs = [json.loads(l) for l in open(os.path.join(a.out_dir, "predictions.jsonl"))]
+        rows = [r for r in rows if r["id"] in {p["id"] for p in prs}]
+        golds = [json.loads(r["target"]) for r in rows]
+        for name in ["base", "finetuned"]:
+            preds[name] = [p[name] for p in prs]
+            scored = [score(p, g) for p, g in zip(preds[name], golds)]
+            results[name] = {**aggregate(scored), "generation_seconds": old[name]["generation_seconds"]}
+        return write_outputs(a, rows, golds, preds, results)
     tok = AutoTokenizer.from_pretrained(a.base_model)
     tok.padding_side = "left"
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     model = AutoModelForCausalLM.from_pretrained(a.base_model, dtype=torch.float32).eval()
-
-    os.makedirs(a.out_dir, exist_ok=True)
-    results, preds = {}, {}
     from peft import PeftModel
     for name in ["base", "finetuned"]:
         if name == "finetuned":
@@ -176,7 +193,10 @@ def main():
         scored = [score(p, g) for p, g in zip(preds[name], golds)]
         results[name] = {**aggregate(scored), "generation_seconds": round(secs, 1)}
         print(name, json.dumps(results[name], indent=2), flush=True)
+    write_outputs(a, rows, golds, preds, results)
 
+
+def write_outputs(a, rows, golds, preds, results):
     with open(os.path.join(a.out_dir, "predictions.jsonl"), "w") as f:
         for r, g, pb, pf in zip(rows, golds, preds["base"], preds["finetuned"]):
             f.write(json.dumps({"id": r["id"], "notes": r["notes"], "gold": g, "base": pb, "finetuned": pf}) + "\n")
@@ -192,6 +212,11 @@ def main():
           "| Metric | Base | Fine-tuned (LoRA) |", "|---|---|---|"]
     md += [f"| {lab} | {results['base'][k]:.3f} | {results['finetuned'][k]:.3f} |" for lab, k in labels]
     md.append(f"| Generation time (s) | {results['base']['generation_seconds']} | {results['finetuned']['generation_seconds']} |")
+    md.append("\n**Status confusion (rows = gold, cols = predicted: green / yellow / red / other)**\n")
+    md += ["| Model | Gold | green | yellow | red | other |", "|---|---|---|---|---|---|"]
+    for name in ["base", "finetuned"]:
+        for g, row in results[name]["status_confusion"].items():
+            md.append(f"| {name} | {g} | " + " | ".join(str(row[p]) for p in ["green", "yellow", "red", "other"]) + " |")
     md.append("\n## Qualitative examples\n")
     for r, g, pb, pf in list(zip(rows, golds, preds["base"], preds["finetuned"]))[:3]:
         md += [f"### {r['id']}\n", "**Notes**\n", "```\n" + r["notes"] + "\n```", f"**Gold status:** {g['status']}\n",

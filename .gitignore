@@ -7,3 +7,16 @@ outputs/**/checkpoint-*/
 .DS_Store
 *.ipynb_checkpoints
 flagged/
+
+# Model artifacts
+# LoRA adapters are committed only when small (< ~20 MB). The 135M adapter weights
+# (~19.6 MB) are kept; the 360M adapter (~34.8 MB) is excluded - regenerate with
+#   python src/train.py --config configs/smollm2_360m_lora.yaml
+outputs/smollm2-360m-pm-status-lora/adapter/
+# Tokenizer copies saved next to adapters duplicate the base model's tokenizer
+outputs/**/adapter/tokenizer.json
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.gguf

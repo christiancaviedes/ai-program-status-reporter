@@ -1,6 +1,8 @@
 PY ?= python
 CONFIG ?= configs/smollm2_135m_lora.yaml
+BASE ?= HuggingFaceTB/SmolLM2-135M-Instruct
 ADAPTER ?= outputs/smollm2-135m-pm-status-lora/adapter
+RESULTS ?= results/smollm2-135m
 
 .PHONY: install data train eval demo all clean
 
@@ -15,12 +17,12 @@ train:
 	$(PY) src/train.py --config $(CONFIG)
 
 eval:
-	$(PY) src/evaluate.py --adapter $(ADAPTER) --out_dir results
+	$(PY) src/evaluate.py --base_model $(BASE) --adapter $(ADAPTER) --out_dir $(RESULTS)
 
 demo:
-	$(PY) src/demo.py --adapter $(ADAPTER)
+	$(PY) src/demo.py --base_model $(BASE) --adapter $(ADAPTER)
 
 all: data train eval
 
 clean:
-	rm -rf outputs results/predictions.jsonl
+	rm -rf outputs
