@@ -1,0 +1,42 @@
+{
+  "config": {
+    "model_name": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "data_dir": "data",
+    "output_dir": "outputs/smollm2-135m-pm-status-lora",
+    "seed": 42,
+    "max_length": 768,
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "lora_target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "num_train_epochs": 2,
+    "per_device_train_batch_size": 4,
+    "gradient_accumulation_steps": 2,
+    "learning_rate": 0.0003,
+    "lr_scheduler_type": "cosine",
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.0,
+    "logging_steps": 5,
+    "eval_steps": 24,
+    "max_steps": -1
+  },
+  "train_seconds": 1162.0,
+  "final_eval": {
+    "eval_loss": 0.19709819555282593,
+    "eval_runtime": 16.902,
+    "eval_samples_per_second": 2.84,
+    "eval_steps_per_second": 0.71,
+    "epoch": 2.0
+  },
+  "global_steps": 96,
+  "device": "cpu x8 threads",
+  "torch": "2.14.1+cpu"
+}

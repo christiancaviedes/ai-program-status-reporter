@@ -1,0 +1,75 @@
+{
+  "base_model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+  "adapter": "outputs/smollm2-360m-pm-status-lora/adapter",
+  "test_file": "data/test.jsonl",
+  "base": {
+    "n": 48,
+    "json_valid_rate": 0.4166666666666667,
+    "strict_json_rate": 0.4166666666666667,
+    "schema_coverage": 0.4166666666666667,
+    "full_schema_rate": 0.4166666666666667,
+    "status_accuracy": 0.08333333333333333,
+    "risk_precision": 0.0,
+    "risk_recall": 0.0,
+    "risk_f1": 0.0,
+    "risk_owner_acc": 0.0,
+    "milestone_f1": 0.17307692307692307,
+    "next_steps_f1": 0.2047244094488189,
+    "status_confusion": {
+      "green": {
+        "green": 4,
+        "yellow": 0,
+        "red": 0,
+        "other": 7
+      },
+      "yellow": {
+        "green": 6,
+        "yellow": 0,
+        "red": 0,
+        "other": 9
+      },
+      "red": {
+        "green": 10,
+        "yellow": 0,
+        "red": 0,
+        "other": 12
+      }
+    },
+    "generation_seconds": 232.8
+  },
+  "finetuned": {
+    "n": 48,
+    "json_valid_rate": 0.9791666666666666,
+    "strict_json_rate": 0.9791666666666666,
+    "schema_coverage": 0.9791666666666666,
+    "full_schema_rate": 0.9791666666666666,
+    "status_accuracy": 0.625,
+    "risk_precision": 0.6,
+    "risk_recall": 0.569620253164557,
+    "risk_f1": 0.5844155844155844,
+    "risk_owner_acc": 0.9777777777777777,
+    "milestone_f1": 0.7887323943661971,
+    "next_steps_f1": 0.8863636363636365,
+    "status_confusion": {
+      "green": {
+        "green": 10,
+        "yellow": 0,
+        "red": 1,
+        "other": 0
+      },
+      "yellow": {
+        "green": 5,
+        "yellow": 2,
+        "red": 8,
+        "other": 0
+      },
+      "red": {
+        "green": 2,
+        "yellow": 1,
+        "red": 18,
+        "other": 1
+      }
+    },
+    "generation_seconds": 214.5
+  }
+}
