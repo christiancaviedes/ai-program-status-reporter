@@ -1,0 +1,10 @@
+# Versions used for the reported run (CPU). Install CPU torch with:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.4
+transformers>=4.46
+peft>=0.13
+datasets>=3.0
+accelerate>=1.0
+pyyaml>=6.0
+# optional, for `src/demo.py --gradio`
+# gradio>=4.0

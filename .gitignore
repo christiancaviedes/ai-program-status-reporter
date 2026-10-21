@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+logs/
+outputs/**/checkpoint-*/
+.cache/
+.DS_Store
+*.ipynb_checkpoints
+flagged/
